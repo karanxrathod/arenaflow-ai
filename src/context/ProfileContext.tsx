@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode } from 'react';
 
 export interface UserProfile {
   name: string;
@@ -37,7 +37,7 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
   });
 
   const updateProfile = (updated: Partial<UserProfile>) => {
-    setProfile(prev => {
+    setProfile((prev: UserProfile) => {
       const next = { ...prev, ...updated };
       localStorage.setItem('arenaflow_profile', JSON.stringify(next));
       return next;

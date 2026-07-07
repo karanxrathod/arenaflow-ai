@@ -1,4 +1,3 @@
-import React from 'react';
 import { StadiumZone } from '../types.js';
 import { ShieldAlert, Users, Clock, Flame, Check } from 'lucide-react';
 

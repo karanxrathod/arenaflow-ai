@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { X, ChevronRight, ChevronLeft, HelpCircle } from 'lucide-react';
 
 interface TourStep {

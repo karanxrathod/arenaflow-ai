@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Shield, User, Settings2, Trash2, ShieldAlert, History, KeyRound } from 'lucide-react';
+import { useState } from 'react';
+import { User, Settings2, ShieldAlert, History } from 'lucide-react';
 
 interface SettingsProps {
   onReset: () => void;

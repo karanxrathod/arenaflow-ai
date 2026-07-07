@@ -1,4 +1,4 @@
-import { StadiumState, StadiumZone, Incident, VendorPrep, AgentLog } from '../types.js';
+import { StadiumState, StadiumZone, VendorPrep } from '../types.js';
 
 export const INITIAL_ZONES: StadiumZone[] = [
   {

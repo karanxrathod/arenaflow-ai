@@ -1,4 +1,4 @@
-import { StadiumState, StadiumZone, Incident, VendorPrep, AgentLog } from '../src/types.js';
+import { StadiumState, StadiumZone, Incident, AgentLog } from '../src/types.js';
 
 // Initial 12 Stadium Zones for a major FIFA World Cup 2026 venue (e.g., MetLife Stadium, NYNJ)
 const INITIAL_ZONES: StadiumZone[] = [

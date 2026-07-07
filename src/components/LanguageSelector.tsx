@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useLanguage, SUPPORTED_LANGUAGES } from '../context/LanguageContext.jsx';
 import { ChevronDown, Globe } from 'lucide-react';
 
@@ -29,6 +29,9 @@ export default function LanguageSelector() {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 px-3 py-1.5 bg-slate-950 border border-slate-850 rounded-xl text-xs text-slate-300 hover:text-white transition-all cursor-pointer"
+        aria-label="Select Language"
+        aria-expanded={isOpen}
+        aria-haspopup="listbox"
       >
         <Globe className="w-3.5 h-3.5 text-slate-400" />
         <span className="font-semibold">{current.flag} {current.name}</span>

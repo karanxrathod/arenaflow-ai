@@ -1,6 +1,5 @@
-import React from 'react';
 import { VendorPrep } from '../types.js';
-import { Store, Flame, AlertCircle, ShoppingBag, ShieldCheck } from 'lucide-react';
+import { Store, AlertCircle, ShoppingBag, ShieldCheck } from 'lucide-react';
 
 interface VendorSyncProps {
   preps: VendorPrep[];

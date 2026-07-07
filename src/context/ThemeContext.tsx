@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 type Theme = 'light' | 'dark';
 
@@ -54,11 +54,11 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   }, [isHighContrast]);
 
   const toggleTheme = () => {
-    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+    setTheme((prev: Theme) => prev === 'dark' ? 'light' : 'dark');
   };
 
   const toggleHighContrast = () => {
-    setIsHighContrast(prev => !prev);
+    setIsHighContrast((prev: boolean) => !prev);
   };
 
   return (

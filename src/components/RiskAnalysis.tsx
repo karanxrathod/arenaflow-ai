@@ -1,4 +1,3 @@
-import React from 'react';
 import { RiskAssessment } from '../types.js';
 import { ShieldAlert, RefreshCw, Sun, Bus, ShieldCheck } from 'lucide-react';
 

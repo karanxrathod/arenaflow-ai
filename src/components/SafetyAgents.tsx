@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { AgentLog, Incident, StadiumZone } from '../types.js';
-import { Shield, Radio, Terminal, Send, CheckCircle2, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Shield, Radio, Terminal, Send, AlertTriangle, RefreshCw } from 'lucide-react';
 
 interface SafetyAgentsProps {
   logs: AgentLog[];

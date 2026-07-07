@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { StadiumState, RiskAssessment, ChatMessage } from './types.js';
 import { getFallbackStadiumState, generateVendorPrepsForZones, getStatusFromDensity } from './utils/fallbackData.js';
 import Dashboard from './components/Dashboard.jsx';
@@ -16,22 +16,15 @@ import { OnboardingTour } from './components/Onboarding/OnboardingTour.js';
 import { NotificationCenter } from './components/Notifications/NotificationCenter.js';
 import { Toast, ToastType } from './components/Common/Toast.js';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts.js';
-import { useTheme } from './context/ThemeContext.js';
 import { useLanguage } from './context/LanguageContext.js';
 import { useProfile } from './context/ProfileContext.js';
 
 import { 
-  ShieldCheck, 
   MapPin, 
-  Activity, 
-  Clock, 
   Globe, 
   Tv, 
-  AlertTriangle, 
   Wifi, 
-  Menu, 
   Search, 
-  Bell, 
   User, 
   ChevronLeft, 
   LayoutDashboard, 
@@ -41,15 +34,12 @@ import {
   Shield, 
   BarChart3, 
   Settings as SettingsIcon, 
-  Check, 
-  X,
-  Play
+  X
 } from 'lucide-react';
 
 export default function App() {
   const { profile } = useProfile();
-  const { language, setLanguage, t } = useLanguage();
-  const { theme } = useTheme();
+  const { t } = useLanguage();
 
   // Toast notifications state
   const [toast, setToast] = useState<{ type: ToastType; message: string } | null>(null);
@@ -74,9 +64,7 @@ export default function App() {
 
   // App layouts states
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState('English');
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
 
   const [loadingState, setLoadingState] = useState({
     stadium: true,
@@ -89,7 +77,6 @@ export default function App() {
     setActiveTab,
     onCloseAllPanels: () => {
       setProfileDropdownOpen(false);
-      setNotificationsOpen(false);
     }
   });
 
@@ -175,7 +162,6 @@ export default function App() {
         if (!prev) return prev;
         const newZones = prev.zones.map(z => {
           if (z.id === zoneId) {
-            const oldDensity = z.density;
             const targetDensity = Math.max(0, Math.min(100, density));
             const status = getStatusFromDensity(targetDensity);
             const currentCount = Math.round(z.capacity * (targetDensity / 100));
@@ -529,6 +515,14 @@ export default function App() {
   return (
     <div className="min-h-screen bg-app-bg text-app-text font-sans flex overflow-hidden selection:bg-amber-500 selection:text-slate-950 transition-colors duration-200">
       
+      {/* Skip to Content Link for Keyboard / Screen Reader Accessibility */}
+      <a 
+        href="#main-content" 
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-amber-500 focus:text-slate-950 focus:rounded-xl focus:font-extrabold focus:outline-none focus:ring-2 focus:ring-amber-500"
+      >
+        Skip to main content
+      </a>
+
       {/* ================= SIDEBAR NAVIGATION ================= */}
       <aside 
         className={`bg-app-secondary border-r border-app-border h-screen flex flex-col justify-between transition-all duration-300 z-50 flex-shrink-0 ${
@@ -780,7 +774,6 @@ export default function App() {
               <button 
                 onClick={() => {
                   setProfileDropdownOpen(!profileDropdownOpen);
-                  setNotificationsOpen(false);
                 }}
                 className="w-9 h-9 rounded-full bg-slate-950 border border-slate-850 flex items-center justify-center text-amber-400 font-bold hover:border-amber-500/40 cursor-pointer"
               >
@@ -824,7 +817,7 @@ export default function App() {
         </header>
 
         {/* ================= PRIMARY DISPLAY BODY ================= */}
-        <main className="flex-1 overflow-y-auto p-6 space-y-6">
+        <main id="main-content" className="flex-1 overflow-y-auto p-6 space-y-6" tabIndex={-1}>
           
           {loadingState.stadium && !state ? (
             <div className="h-full flex flex-col items-center justify-center text-center space-y-4">

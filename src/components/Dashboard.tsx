@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { StadiumState, RiskAssessment } from '../types.js';
 import { useLanguage } from '../context/LanguageContext.js';
 import { SimulationEngine } from '../services/SimulationEngine.js';
@@ -12,7 +12,6 @@ import {
   TrendingUp, 
   Trophy, 
   Bell, 
-  ShieldCheck, 
   Play 
 } from 'lucide-react';
 
@@ -49,9 +48,6 @@ export default function Dashboard({ state, risk, onNavigate, onSimulateCriticalS
 
   // Active warning/critical incidents
   const activeIncidentsCount = state.incidents.filter(i => i.status !== 'RESOLVED').length;
-
-  // Active surge concessions count
-  const surgeConcessionsCount = state.vendorPreps.filter(vp => vp.currentDensity >= 55).length;
 
   // Render status badge style for overall load
   const getLoadLevelColor = (density: number) => {

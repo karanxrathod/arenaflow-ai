@@ -1,6 +1,5 @@
-import React from 'react';
 import { StadiumState } from '../types.js';
-import { BarChart3, Clock, AlertTriangle, TrendingUp, Users, ShieldCheck, BarChart } from 'lucide-react';
+import { BarChart3, Clock, AlertTriangle, TrendingUp, ShieldCheck, BarChart } from 'lucide-react';
 import { DensityChart } from './Analytics/Charts.js';
 
 interface AnalyticsProps {

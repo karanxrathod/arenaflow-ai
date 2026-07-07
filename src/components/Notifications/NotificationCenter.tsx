@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Bell, X, AlertTriangle, Info, CheckCircle, ShieldAlert } from 'lucide-react';
 import { Incident } from '../../types.js';
 import { useLanguage } from '../../context/LanguageContext.js';
