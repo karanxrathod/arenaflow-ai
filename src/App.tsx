@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { StadiumState, RiskAssessment, ChatMessage } from './types.js';
+import { getFallbackStadiumState, generateVendorPrepsForZones, getStatusFromDensity } from './utils/fallbackData.js';
 import Dashboard from './components/Dashboard.jsx';
 import StadiumTwin from './components/StadiumTwin.jsx';
 import RiskAnalysis from './components/RiskAnalysis.jsx';
@@ -58,6 +59,7 @@ export default function App() {
   }, []);
 
   // Operational states
+  const [useLocalFallback, setUseLocalFallback] = useState(false);
   const [state, setState] = useState<StadiumState | null>(null);
   const [riskAssessment, setRiskAssessment] = useState<RiskAssessment | null>(null);
   const [selectedZoneId, setSelectedZoneId] = useState<string | null>('zone-c');
@@ -106,9 +108,19 @@ export default function App() {
       if (res.ok) {
         const data = await res.json();
         setState(data);
+        setUseLocalFallback(false);
+      } else {
+        throw new Error('API server returned error status');
       }
     } catch (err) {
-      console.error('Failed to sync stadium state:', err);
+      console.warn('API sync failed, entering robust offline/Vercel fallback mode:', err);
+      setUseLocalFallback(true);
+      setState(prev => {
+        if (!prev) {
+          return getFallbackStadiumState();
+        }
+        return prev;
+      });
     } finally {
       if (showLoader) setLoadingState(prev => ({ ...prev, stadium: false }));
     }
@@ -117,6 +129,32 @@ export default function App() {
   // Recalculate AI Risk assessment using Gemini
   const handleRecalculateRisk = async () => {
     setLoadingState(prev => ({ ...prev, risk: true }));
+    if (useLocalFallback) {
+      setTimeout(() => {
+        const avgDensity = state ? Math.round(state.zones.reduce((acc, curr) => acc + curr.density, 0) / state.zones.length) : 45;
+        const highestDensity = state ? Math.max(...state.zones.map(z => z.density)) : 76;
+        let level: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' = 'LOW';
+        if (highestDensity >= 75) level = 'CRITICAL';
+        else if (highestDensity >= 55) level = 'HIGH';
+        else if (highestDensity >= 35) level = 'MEDIUM';
+
+        setRiskAssessment({
+          score: Math.round(avgDensity * 1.2),
+          level,
+          summary: `Local Sandboxed Intelligence assessed stadium telemetry. Gate configurations show stable crowds with minor bottlenecks in selected high-volume ticket scanners.`,
+          weatherImpact: `Temperature of ${state?.weather.temp || '27°C'} with Partly Cloudy comfort conditions. Comfort risk index: Minimal.`,
+          transitImpact: `Transit Hubs reporting active passenger flow. ${state?.transit.shuttleStatus || 'Shuttles operating normally'}.`,
+          recommendations: [
+            `Keep auxiliary Gates open to bypass congestion in localized sectors.`,
+            `Direct fan guides to divert fans from Gate G to adjacent Gates F or H.`,
+            `Prepare concession preps dynamically based on incoming crowd counts.`
+          ]
+        });
+        setLoadingState(prev => ({ ...prev, risk: false }));
+      }, 500);
+      return;
+    }
+
     try {
       const res = await fetch('/api/risk-assessment', { method: 'POST' });
       if (res.ok) {
@@ -132,6 +170,90 @@ export default function App() {
 
   // Adjust crowd density of a zone (simulate surge)
   const handleUpdateDensity = async (zoneId: string, density: number) => {
+    if (useLocalFallback) {
+      setState(prev => {
+        if (!prev) return prev;
+        const newZones = prev.zones.map(z => {
+          if (z.id === zoneId) {
+            const oldDensity = z.density;
+            const targetDensity = Math.max(0, Math.min(100, density));
+            const status = getStatusFromDensity(targetDensity);
+            const currentCount = Math.round(z.capacity * (targetDensity / 100));
+            const queueTimeMin = Math.round(targetDensity * 0.4);
+
+            return {
+              ...z,
+              density: targetDensity,
+              status,
+              currentCount,
+              queueTimeMin
+            };
+          }
+          return z;
+        });
+
+        const updatedPreps = generateVendorPrepsForZones(newZones);
+        
+        // Multi-Agent simulation check
+        const targetZone = prev.zones.find(z => z.id === zoneId);
+        const oldDensity = targetZone ? targetZone.density : 0;
+        let logs = [...prev.agentLogs];
+        let incidents = [...prev.incidents];
+
+        if (density >= 55 && oldDensity < 55) {
+          const timestamp = new Date().toLocaleTimeString();
+          const targetZoneObj = newZones.find(z => z.id === zoneId) || targetZone;
+          const zoneName = targetZoneObj ? targetZoneObj.name : 'Sector';
+          
+          logs.unshift({
+            id: `agent-log-${Date.now()}-1`,
+            timestamp,
+            agentName: 'Supervisor Agent',
+            message: `🚨 ALERT: Density in ${zoneName} surged to ${density}%. Delegating flow analysis immediately.`,
+            status: 'PROCESSING'
+          });
+
+          logs.unshift({
+            id: `agent-log-${Date.now()}-2`,
+            timestamp,
+            agentName: 'Analysis Agent',
+            message: `🔍 ANALYSIS: Turnstile flow rate at ${zoneName} is heavy. Nearby alternative gates are verified below 45% capacity.`,
+            status: 'PROCESSING'
+          });
+
+          logs.unshift({
+            id: `agent-log-${Date.now()}-3`,
+            timestamp,
+            agentName: 'Mitigation Agent',
+            message: `⚙️ MITIGATION: Broadcaster triggered! Digital twin signage at ${zoneName} updated to: "USE ALTERNATIVE CORRIDORS".`,
+            status: 'ALERT'
+          });
+
+          incidents.unshift({
+            id: `inc-${Date.now()}`,
+            timestamp,
+            zoneId,
+            zoneName: zoneName || 'Sector',
+            severity: density >= 75 ? 'CRITICAL' : 'WARNING',
+            message: `Autonomous agents mitigated high crowd load (${density}%) at ${zoneName}. Dynamic signage routed flow to alternate entries.`,
+            status: 'RESOLVED',
+            agentOwner: 'Mitigation Agent',
+            mitigationPlan: 'Banners updated to disperse crowds to low density corridors.'
+          });
+        }
+
+        return {
+          ...prev,
+          zones: newZones,
+          vendorPreps: updatedPreps,
+          agentLogs: logs,
+          incidents
+        };
+      });
+      showToast('info', `Simulating density adjust: Sector ${zoneId.replace('zone-', '').toUpperCase()} set to ${density}%`);
+      return;
+    }
+
     try {
       const res = await fetch('/api/update-density', {
         method: 'POST',
@@ -151,6 +273,39 @@ export default function App() {
 
   // Dispatches a custom operational threat/incident
   const handleTriggerIncident = async (zoneId: string, severity: 'INFO' | 'WARNING' | 'CRITICAL', message: string) => {
+    if (useLocalFallback) {
+      setState(prev => {
+        if (!prev) return prev;
+        const targetZone = prev.zones.find(z => z.id === zoneId);
+        const name = targetZone ? targetZone.name : 'Unknown Sector';
+        const newIncident = {
+          id: `inc-${Date.now()}`,
+          timestamp: new Date().toLocaleTimeString(),
+          zoneId,
+          zoneName: name,
+          severity,
+          message,
+          status: 'OPEN' as const,
+          agentOwner: 'Supervisor Agent',
+          mitigationPlan: severity === 'CRITICAL' ? 'Diverting stadium spectators to alternative auxiliary entries.' : undefined
+        };
+        const newLog = {
+          id: `agent-log-${Date.now()}`,
+          timestamp: new Date().toLocaleTimeString(),
+          agentName: 'Supervisor Agent' as const,
+          message: `⚠️ OPERATOR DIRECTIVE: ${severity} alert dispatched in ${name}: "${message}"`,
+          status: 'ALERT' as const
+        };
+        return {
+          ...prev,
+          incidents: [newIncident, ...prev.incidents],
+          agentLogs: [newLog, ...prev.agentLogs]
+        };
+      });
+      showToast('warning', `OPERATIONAL DIRECTIVE: Custom ${severity} alert dispatched to Sector ${zoneId.replace('zone-', '').toUpperCase()}`);
+      return;
+    }
+
     try {
       const res = await fetch('/api/trigger-incident', {
         method: 'POST',
@@ -179,6 +334,78 @@ export default function App() {
 
     setChatHistory(prev => [...prev, userMsg]);
     setLoadingState(prev => ({ ...prev, chat: true }));
+
+    if (useLocalFallback) {
+      setTimeout(() => {
+        const query = text.toLowerCase();
+        let reply = '';
+
+        if (language === 'Spanish') {
+          if (query.includes('baño') || query.includes('toilet') || query.includes('restroom') || query.includes('wc')) {
+            reply = 'Sugerencia de navegación: El baño más cercano con menor tiempo de espera es NE Restroom 105 en el sector Gate B (menos de 2 minutos de espera). Evite el sector Gate G.';
+          } else if (query.includes('comida') || query.includes('taco') || query.includes('cerveza') || query.includes('hambre') || query.includes('comer')) {
+            reply = 'Sugerencia de comida: World Cup Grill en Gate B tiene un tiempo de espera de 5 minutos. Samba Street Tacos en Gate C tiene alta demanda (22 minutos de espera).';
+          } else if (query.includes('puerta') || query.includes('gate') || query.includes('salida') || query.includes('entrada') || query.includes('gente')) {
+            reply = 'Monitoreo de puertas: Gate B y Gate F reportan descongestión (espera menor de 5 minutos). Gate G está al límite crítico, le recomendamos usar la entrada alternativa Gate H.';
+          } else {
+            reply = '¡Hola! Bienvenido al asistente de ArenaFlow AI. Las rutas de transporte y puertas están sincronizadas. ¿En qué sector se encuentra para guiarle?';
+          }
+        } else if (language === 'French') {
+          if (query.includes('toilet') || query.includes('wc') || query.includes('restroom') || query.includes('toilette')) {
+            reply = 'Conseil de navigation: Les toilettes les plus proches et libres se trouvent au Gate B (NE Restroom 105, moins de 2 minutes d\'attente). Évitez le secteur Gate G.';
+          } else if (query.includes('manger') || query.includes('faim') || query.includes('taco') || query.includes('biere') || query.includes('nourriture')) {
+            reply = 'Recommandation repas: World Cup Grill au Gate B (5 min d\'attente) ou Maple Waffles au Gate F (4 min). Évitez le secteur Gate C pour l\'instant.';
+          } else if (query.includes('porte') || query.includes('gate') || query.includes('entree') || query.includes('foule')) {
+            reply = 'Statut des portes: Les portes B et F sont fluides (moins de 5 min). Gate G est saturé, veuillez utiliser Gate H pour un accès rapide.';
+          } else {
+            reply = 'Bonjour! Bienvenue dans l\'assistant virtuel ArenaFlow AI. Comment puis-je vous guider vers votre secteur aujourd\'hui?';
+          }
+        } else if (language === 'Hindi') {
+          if (query.includes('toilet') || query.includes('restroom') || query.includes('शौचालय') || query.includes('वॉशरुम')) {
+            reply = 'नेविगेशन सहायता: गेट B (Gate B) के पास NE Restroom 105 में सबसे कम भीड़ है (2 मिनट से कम प्रतीक्षा समय)। कृपया गेट G वाले क्षेत्र से बचें।';
+          } else if (query.includes('food') || query.includes('भूख') || query.includes('खाना') || query.includes('taco') || query.includes('pizza') || query.includes('भोजन')) {
+            reply = 'भोजन सुझाव: गेट B पर World Cup Grill में केवल 5 मिनट की प्रतीक्षा है। गेट C पर Samba Street Tacos में भारी भीड़ है (22 मिनट की प्रतीक्षा)।';
+          } else if (query.includes('gate') || query.includes('भीड़') || query.includes('प्रवेश') || query.includes('रास्ता')) {
+            reply = 'गेट स्थिति: गेट B और गेट F बिल्कुल खाली हैं (5 मिनट से कम समय)। गेट G पर भारी भीड़ है, कृपया वैकल्पिक गेट H का उपयोग करें।';
+          } else {
+            reply = 'नमस्कार! एरिनाफ्لو एआई (ArenaFlow AI) सहायक में आपका स्वागत है। मैं आज स्टेडियम के किस क्षेत्र में आपकी सहायता कर सकता हूँ?';
+          }
+        } else if (language === 'Arabic') {
+          if (query.includes('toilet') || query.includes('restroom') || query.includes('حمام') || query.includes('دورة') || query.includes('مرحاض')) {
+            reply = 'توجيه الملاعب: أقرب دورة مياه شاغرة هي NE Restroom 105 عند البوابة B (وقت الانتظار أقل من دقيقتين). يرجى تجنب البوابة G المزدحمة.';
+          } else if (query.includes('food') || query.includes('طعام') || query.includes('اكل') || query.includes('جائع') || query.includes('تاكو') || query.includes('شراب')) {
+            reply = 'توصية الطعام: مطعم World Cup Grill عند البوابة B لديه انتظار 5 دقائق فقط. بينما Samba Street Tacos عند البوابة C مزدحم للغاية (22 دقيقة).';
+          } else if (query.includes('gate') || query.includes('بوابة') || query.includes('ازدحام') || query.includes('مدخل') || query.includes('مخرج')) {
+            reply = 'حالة البوابات: البوابات B و F فارغة تمامًا ومريحة (انتظار أقل من 5 دقائق). يرجى تجنب البوابة G واستخدام البوابة H كبديل سريع.';
+          } else {
+            reply = 'مرحباً بك في مساعد ملاعب كأس العالم ArenaFlow AI. كيف يمكنني مساعدتك في التنقل وتجنب الازدحام اليوم؟';
+          }
+        } else {
+          // English (Default)
+          if (query.includes('toilet') || query.includes('restroom') || query.includes('washroom') || query.includes('wc')) {
+            reply = 'Navigation guidance: Nearest restroom with low wait times is NE Restroom 105 at Gate B (under 2 minutes wait). Avoid restrooms in Gate C and Gate G.';
+          } else if (query.includes('food') || query.includes('eat') || query.includes('beer') || query.includes('taco') || query.includes('pizza') || query.includes('hungry')) {
+            reply = 'Concession Suggestion: World Cup Grill at Gate B has only a 5-minute queue. Samba Street Tacos at Gate C is highly congested (22 minutes queue wait).';
+          } else if (query.includes('gate') || query.includes('crowd') || query.includes('ingress') || query.includes('exit') || query.includes('traffic')) {
+            reply = 'Gate Capacity Status: Gate B and Gate F are highly fluid (under 5 mins wait). Gate G is experiencing a critical load, please reroute to Gate H.';
+          } else {
+            reply = 'Hello! Welcome to the ArenaFlow AI multilingual assistant. Transit corridors and digital twin heatmaps are synced. Which gate are you heading to?';
+          }
+        }
+
+        const modelMsg: ChatMessage = {
+          id: `chat-${Date.now()}-m`,
+          role: 'model',
+          text: reply,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          language,
+        };
+        setChatHistory(prev => [...prev, modelMsg]);
+        showToast('success', 'Fan assistant simulated dynamic routing response locally');
+        setLoadingState(prev => ({ ...prev, chat: false }));
+      }, 600);
+      return;
+    }
 
     try {
       const res = await fetch('/api/fan-chat', {
@@ -213,6 +440,13 @@ export default function App() {
 
   // Reset stadium state
   const handleResetState = async () => {
+    if (useLocalFallback) {
+      setState(getFallbackStadiumState());
+      setRiskAssessment(null);
+      showToast('success', 'Stadium digital twin local simulation synchronized to operational baseline');
+      return;
+    }
+
     try {
       const res = await fetch('/api/reset', { method: 'POST' });
       if (res.ok) {
