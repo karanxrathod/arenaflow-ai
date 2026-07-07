@@ -1,0 +1,132 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* Theme mappings for Tailwind v4 */
+  --color-app-bg: var(--bg-primary);
+  --color-app-secondary: var(--bg-secondary);
+  --color-app-card: var(--bg-card);
+  --color-app-surface: var(--bg-surface);
+  --color-app-text: var(--text-primary);
+  --color-app-muted: var(--text-secondary);
+  --color-app-border: var(--border-color);
+}
+
+/* Light Mode (Default) */
+:root {
+  --bg-primary: #F8FAFC;
+  --bg-secondary: #FFFFFF;
+  --bg-card: #FFFFFF;
+  --bg-surface: #F1F5F9;
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --border-color: #E2E8F0;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.07);
+}
+
+/* Dark Mode (.dark class on html element) */
+.dark {
+  --bg-primary: #070B14;
+  --bg-secondary: #0D1222;
+  --bg-card: #0D1222;
+  --bg-surface: #172033;
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --border-color: rgba(255,255,255,0.06);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.4);
+}
+
+/* High Contrast Mode (.high-contrast class on html element) */
+.high-contrast {
+  --bg-primary: #000000 !important;
+  --bg-secondary: #000000 !important;
+  --bg-card: #000000 !important;
+  --bg-surface: #121212 !important;
+  --text-primary: #FFFFFF !important;
+  --text-secondary: #FFFF00 !important; /* Pure high contrast yellow */
+  --border-color: #FFFFFF !important;
+  --shadow-sm: none !important;
+  --shadow-md: none !important;
+}
+
+.high-contrast .glass-panel,
+.high-contrast div,
+.high-contrast aside,
+.high-contrast nav,
+.high-contrast section,
+.high-contrast header,
+.high-contrast footer {
+  border-color: #FFFFFF !important;
+}
+
+.high-contrast button {
+  border: 2px solid #FFFFFF !important;
+  background-color: #000000 !important;
+  color: #FFFFFF !important;
+}
+
+.high-contrast button:hover {
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+}
+
+.high-contrast input, 
+.high-contrast select, 
+.high-contrast textarea {
+  border: 1px solid #FFFFFF !important;
+  background-color: #000000 !important;
+  color: #FFFFFF !important;
+}
+
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Custom CSS for gorgeous custom glow effects and smooth transitions */
+.glass-panel {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 20px;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.dark .glass-panel {
+  background: rgba(13, 18, 34, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.gold-glow {
+  text-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
+}
+
+.stadium-pitch {
+  background: radial-gradient(circle at center, #1b4d3e 0%, #0c2d1c 100%);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.2);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}

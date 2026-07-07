@@ -1,0 +1,6 @@
+{
+  "name": "ArenaFlow AI",
+  "description": "GenAI-powered Smart Stadium & Tournament Operations System for the FIFA World Cup 2026, offering live crowd twin, safety mitigations, and dynamic navigation agents.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
