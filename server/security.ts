@@ -65,7 +65,7 @@ export function corsMiddleware(req: express.Request, res: express.Response, next
 /**
  * Sets secure HTTP security headers to prevent standard browser vulnerabilities.
  */
-export function setSecurityHeaders(req: express.Request, res: express.Response, next: express.NextFunction): void {
+export function setSecurityHeaders(_req: express.Request, res: express.Response, next: express.NextFunction): void {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-XSS-Protection', '1; mode=block');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
@@ -89,7 +89,7 @@ export function setSecurityHeaders(req: express.Request, res: express.Response, 
  */
 export function jsonErrorHandler(
   err: any,
-  req: express.Request,
+  _req: express.Request,
   res: express.Response,
   next: express.NextFunction
 ): void {

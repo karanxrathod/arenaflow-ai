@@ -22,7 +22,7 @@ interface DashboardProps {
   onSimulateCriticalSurge: () => void;
 }
 
-export default function Dashboard({ state, risk, onNavigate, onSimulateCriticalSurge }: DashboardProps) {
+export default function Dashboard({ state, risk: _risk, onNavigate, onSimulateCriticalSurge }: DashboardProps) {
   const { t } = useLanguage();
   
   const simEngine = useRef<SimulationEngine | null>(null);

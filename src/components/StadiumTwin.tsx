@@ -124,6 +124,7 @@ export default function StadiumTwin({
                     key={zone.id}
                     id={`stadium-zone-${zone.id}`}
                     onClick={() => onSelectZone(zone.id)}
+                    aria-label={`Zone ${zone.id.split('-')[1].toUpperCase()} (${zone.name}), current density ${zone.density} percent, queue wait time ${zone.queueTimeMin} minutes`}
                     className={`
                       ${getPositionClass(zone.id)} 
                       ${style.bg} ${style.border} border-2 rounded-xl p-2.5
@@ -216,17 +217,21 @@ export default function StadiumTwin({
               {/* Dynamic Simulation Slider */}
               <div className="p-4 bg-slate-900/50 rounded-xl border border-slate-800">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-xs font-semibold text-slate-300 flex items-center gap-1">
+                  <label htmlFor="crowd-density-slider" className="text-xs font-semibold text-slate-300 flex items-center gap-1">
                     <Flame className="w-3.5 h-3.5 text-rose-400" /> Simulate Crowd Density
-                  </span>
+                  </label>
                   <span className="text-sm font-mono font-bold text-amber-400">{selectedZone.density}%</span>
                 </div>
                 <input
+                  id="crowd-density-slider"
                   type="range"
                   min="0"
                   max="100"
                   value={selectedZone.density}
                   onChange={(e) => onUpdateDensity(selectedZone.id, parseInt(e.target.value))}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={selectedZone.density}
                   className="w-full accent-amber-500 bg-slate-800 h-2 rounded-lg cursor-pointer"
                 />
                 <div className="flex justify-between text-[10px] text-slate-400 mt-1">

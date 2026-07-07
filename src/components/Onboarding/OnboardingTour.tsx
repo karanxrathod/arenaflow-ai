@@ -81,7 +81,7 @@ interface OnboardingTourProps {
   setActiveTab: (tab: any) => void;
 }
 
-export const OnboardingTour = ({ activeTab, setActiveTab }: OnboardingTourProps) => {
+export const OnboardingTour = ({ activeTab: _activeTab, setActiveTab }: OnboardingTourProps) => {
   const [isActive, setIsActive] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
 

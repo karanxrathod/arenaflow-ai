@@ -1,11 +1,14 @@
 import { VendorPrep } from '../types.js';
 import { Store, AlertCircle, ShoppingBag, ShieldCheck } from 'lucide-react';
+import { OperationalDomain, DOMAIN_LABELS } from '../utils/domainAdapter.js';
 
 interface VendorSyncProps {
   preps: VendorPrep[];
+  domain?: OperationalDomain;
 }
 
-export default function VendorSync({ preps }: VendorSyncProps) {
+export default function VendorSync({ preps, domain = 'stadium' }: VendorSyncProps) {
+  const labels = DOMAIN_LABELS[domain];
   
   const getDemandBadge = (demand: 'LOW' | 'MODERATE' | 'HIGH' | 'SURGING') => {
     switch (demand) {
@@ -32,7 +35,7 @@ export default function VendorSync({ preps }: VendorSyncProps) {
         <div className="flex justify-between items-start mb-4">
           <div>
             <h3 className="font-display text-lg font-bold text-white tracking-wide flex items-center gap-1.5">
-              <Store className="w-5 h-5 text-amber-500" /> Vendor Supply & Operations Sync
+              <Store className="w-5 h-5 text-amber-500" /> {labels.vendorLabel} Supply & Operations Sync
             </h3>
             <p className="text-xs text-slate-400">Live predictive crowd-surge catering models for concourse concessionaires</p>
           </div>
@@ -48,7 +51,7 @@ export default function VendorSync({ preps }: VendorSyncProps) {
                 .filter(p => p.currentDensity >= 55)
                 .map((p, idx, arr) => (
                   <span key={p.zoneId}>
-                    {p.concessionName} ({p.currentDensity}% density, Prep {p.refreshmentsToPrep} Drinks / {p.tacosToPrep} Tacos)
+                    {p.concessionName} ({p.currentDensity}% density, Prep {p.refreshmentsToPrep} {labels.drinkLabel} / {p.tacosToPrep} {labels.foodLabel})
                     {idx < arr.length - 1 ? ' • ' : ''}
                   </span>
                 ))}
@@ -62,7 +65,7 @@ export default function VendorSync({ preps }: VendorSyncProps) {
         )}
 
         {/* Vendors Grid */}
-        <div className="space-y-2.5 overflow-y-auto max-h-[310px] pr-1">
+        <div className="space-y-2.5 overflow-y-auto max-h-[310px] pr-1 font-sans">
           {preps.map((p) => {
             const alertText = getAlertPriority(p.currentDensity);
             return (
@@ -101,22 +104,22 @@ export default function VendorSync({ preps }: VendorSyncProps) {
 
                 {/* Catering Targets */}
                 <div className="grid grid-cols-3 gap-2 mt-3 pt-2.5 border-t border-slate-850/40 text-[11px]">
-                  <div className="bg-slate-950/40 p-1.5 rounded-lg border border-slate-900 flex flex-col justify-center text-center">
-                    <span className="text-[9px] text-slate-400 uppercase leading-none block mb-1">Catering Targets</span>
+                  <div className="bg-slate-950/40 p-1.5 rounded-lg border border-slate-900 flex flex-col justify-center text-center font-mono">
+                    <span className="text-[9px] text-slate-400 uppercase leading-none block mb-1 font-sans">{labels.drinkLabel}</span>
                     <span className="font-mono font-bold text-white">
-                      {p.refreshmentsToPrep} Drinks
+                      {p.refreshmentsToPrep} Units
                     </span>
                   </div>
 
-                  <div className="bg-slate-950/40 p-1.5 rounded-lg border border-slate-900 flex flex-col justify-center text-center">
-                    <span className="text-[9px] text-slate-400 uppercase leading-none block mb-1">Tacos / Food</span>
+                  <div className="bg-slate-950/40 p-1.5 rounded-lg border border-slate-900 flex flex-col justify-center text-center font-mono">
+                    <span className="text-[9px] text-slate-400 uppercase leading-none block mb-1 font-sans">{labels.foodLabel}</span>
                     <span className="font-mono font-bold text-white">
-                      {p.tacosToPrep} Plates
+                      {p.tacosToPrep} Units
                     </span>
                   </div>
 
-                  <div className="bg-slate-950/40 p-1.5 rounded-lg border border-slate-900 flex flex-col justify-center text-center">
-                    <span className="text-[9px] text-slate-400 uppercase leading-none block mb-1">Extra Staff</span>
+                  <div className="bg-slate-950/40 p-1.5 rounded-lg border border-slate-900 flex flex-col justify-center text-center font-mono">
+                    <span className="text-[9px] text-slate-400 uppercase leading-none block mb-1 font-sans">{labels.extraStaffLabel}</span>
                     <span className={`font-mono font-bold ${p.additionalStaffRecommended > 0 ? 'text-amber-400' : 'text-slate-400'}`}>
                       {p.additionalStaffRecommended > 0 ? `+${p.additionalStaffRecommended} Ops` : 'Optimal'}
                     </span>
@@ -132,7 +135,7 @@ export default function VendorSync({ preps }: VendorSyncProps) {
         <span className="flex items-center gap-1">
           <ShoppingBag className="w-3 h-3 text-slate-500" /> CATERING INVENTORY ENGINE
         </span>
-        <span>2026 WORLD CUP SPECIALIST</span>
+        <span>{labels.appName.toUpperCase()} SPECIALIST</span>
       </div>
     </div>
   );

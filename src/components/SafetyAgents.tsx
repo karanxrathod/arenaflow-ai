@@ -135,8 +135,9 @@ export default function SafetyAgents({
             
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="text-[10px] text-slate-400 font-bold block mb-1">Target Zone</label>
+                <label htmlFor="incident-target-zone" className="text-[10px] text-slate-400 font-bold block mb-1">Target Zone</label>
                 <select
+                  id="incident-target-zone"
                   value={targetZoneId}
                   onChange={(e) => setTargetZoneId(e.target.value)}
                   className="w-full bg-slate-900 border border-slate-800 text-xs text-slate-300 rounded p-1.5 focus:outline-none focus:ring-1 focus:ring-amber-500 cursor-pointer"
@@ -148,8 +149,9 @@ export default function SafetyAgents({
               </div>
 
               <div>
-                <label className="text-[10px] text-slate-400 font-bold block mb-1">Severity</label>
+                <label htmlFor="incident-severity" className="text-[10px] text-slate-400 font-bold block mb-1">Severity</label>
                 <select
+                  id="incident-severity"
                   value={severity}
                   onChange={(e) => setSeverity(e.target.value as any)}
                   className="w-full bg-slate-900 border border-slate-800 text-xs text-slate-300 rounded p-1.5 focus:outline-none focus:ring-1 focus:ring-amber-500 cursor-pointer"
@@ -162,8 +164,9 @@ export default function SafetyAgents({
             </div>
 
             <div>
-              <label className="text-[10px] text-slate-400 font-bold block mb-1">Incident Description</label>
+              <label htmlFor="incident-description" className="text-[10px] text-slate-400 font-bold block mb-1">Incident Description</label>
               <input
+                id="incident-description"
                 type="text"
                 value={customMsg}
                 onChange={(e) => setCustomMsg(e.target.value)}

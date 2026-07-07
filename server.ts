@@ -45,7 +45,7 @@ async function startServer() {
   // ==================== API ROUTES ====================
 
   // Get full real-time stadium state
-  app.get('/api/stadium-state', (req, res) => {
+  app.get('/api/stadium-state', (_req, res) => {
     try {
       res.json(getStadiumState());
     } catch (err: any) {
@@ -78,7 +78,7 @@ async function startServer() {
   });
 
   // Calculate live risk assessment using Gemini AI - AI-invoking route, rate limited
-  app.post('/api/risk-assessment', rateLimiter, async (req, res) => {
+  app.post('/api/risk-assessment', rateLimiter, async (_req, res) => {
     try {
       const liveState = getStadiumState();
       const assessment = await getRiskAssessment(liveState);
@@ -161,7 +161,7 @@ async function startServer() {
   });
 
   // Reset the twin state to initials - WRITING route, rate limited
-  app.post('/api/reset', rateLimiter, (req, res) => {
+  app.post('/api/reset', rateLimiter, (_req, res) => {
     try {
       resetStadiumState();
       res.json(getStadiumState());
@@ -182,7 +182,7 @@ async function startServer() {
   } else {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
-    app.get('*', (req, res) => {
+    app.get('*', (_req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }

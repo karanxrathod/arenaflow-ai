@@ -149,6 +149,7 @@ export default function FanConcierge({
               id="lang-selector"
               value={selectedLanguage}
               onChange={(e) => setSelectedLanguage(e.target.value)}
+              aria-label="Select Chat Language"
               className="bg-slate-900 border border-slate-800 text-slate-300 text-xs rounded-lg p-1 px-2 focus:outline-none focus:ring-1 focus:ring-amber-500 cursor-pointer"
             >
               {languages.map((lang) => (
@@ -161,6 +162,7 @@ export default function FanConcierge({
             <button
               id="clear-chat-btn"
               onClick={onClearHistory}
+              aria-label="Clear chat history"
               className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-900 transition-all cursor-pointer"
               title="Clear chat history"
             >
@@ -257,12 +259,14 @@ export default function FanConcierge({
           onChange={(e) => setInputText(e.target.value)}
           placeholder={`Type a navigation query in ${selectedLanguage}...`}
           disabled={loading}
+          aria-label="Type your navigation query here"
           className="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
         />
         <button
           type="submit"
           id="send-chat-btn"
           disabled={loading || !inputText.trim()}
+          aria-label="Send message"
           className="p-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 disabled:opacity-40 disabled:hover:bg-amber-500 text-slate-950 font-bold transition-all flex items-center justify-center cursor-pointer"
         >
           <Send className="w-4 h-4" />

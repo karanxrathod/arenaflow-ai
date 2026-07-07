@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface DensityChartProps {
   data: {
@@ -9,23 +9,41 @@ interface DensityChartProps {
 }
 
 export const DensityChart = ({ data }: DensityChartProps) => {
+  const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
   useEffect(() => {
-    if (!canvasRef.current) return;
+    if (!containerRef.current) return;
+    const container = containerRef.current;
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      if (!entries || entries.length === 0) return;
+      const { width, height } = entries[0].contentRect;
+      // Debounce and store container dimensions
+      setDimensions({ width, height: height || 220 });
+    });
+
+    resizeObserver.observe(container);
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!canvasRef.current || dimensions.width === 0 || dimensions.height === 0) return;
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Handle high DPI retina screens
+    // Handle high DPI retina screens using observed dimensions
     const dpr = window.devicePixelRatio || 1;
-    const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
+    canvas.width = dimensions.width * dpr;
+    canvas.height = dimensions.height * dpr;
     ctx.scale(dpr, dpr);
 
-    const width = rect.width;
-    const height = rect.height;
+    const width = dimensions.width;
+    const height = dimensions.height;
     const padding = 35;
     const chartHeight = height - padding * 2;
     const chartWidth = width - padding * 2;
@@ -124,10 +142,10 @@ export const DensityChart = ({ data }: DensityChartProps) => {
     ctx.lineTo(width - padding, height - padding);
     ctx.stroke();
 
-  }, [data]);
+  }, [data, dimensions]);
 
   return (
-    <div className="w-full h-full min-h-[220px]">
+    <div ref={containerRef} className="w-full h-full min-h-[220px]">
       <canvas 
         ref={canvasRef} 
         className="w-full h-full min-h-[220px] rounded-xl border border-slate-850/50 block shadow-inner"

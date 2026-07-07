@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { StadiumState, RiskAssessment, ChatMessage } from './types.js';
 import { getFallbackStadiumState, generateVendorPrepsForZones, getStatusFromDensity } from './utils/fallbackData.js';
+import { OperationalDomain, DOMAIN_LABELS, adaptStadiumState, adaptRiskAssessment } from './utils/domainAdapter.js';
 import Dashboard from './components/Dashboard.jsx';
 import StadiumTwin from './components/StadiumTwin.jsx';
 import RiskAnalysis from './components/RiskAnalysis.jsx';
@@ -49,6 +50,15 @@ export default function App() {
   }, []);
 
   // Operational states
+  const [domain, setDomain] = useState<OperationalDomain>(() => {
+    const saved = localStorage.getItem('arenaflow_domain');
+    return (saved as OperationalDomain) || 'stadium';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('arenaflow_domain', domain);
+  }, [domain]);
+
   const [useLocalFallback, setUseLocalFallback] = useState(false);
   const [state, setState] = useState<StadiumState | null>(null);
   const [riskAssessment, setRiskAssessment] = useState<RiskAssessment | null>(null);
@@ -512,6 +522,10 @@ export default function App() {
     }
   };
 
+  const adaptedState = state ? adaptStadiumState(state, domain) : null;
+  const adaptedRisk = riskAssessment ? adaptRiskAssessment(riskAssessment, domain) : null;
+  const labels = DOMAIN_LABELS[domain];
+
   return (
     <div className="min-h-screen bg-app-bg text-app-text font-sans flex overflow-hidden selection:bg-amber-500 selection:text-slate-950 transition-colors duration-200">
       
@@ -539,9 +553,9 @@ export default function App() {
               {!sidebarCollapsed && (
                 <div className="animate-fade-in">
                   <h1 className="font-display text-sm font-extrabold text-white dark:text-white light:text-slate-900 tracking-wide uppercase leading-none">
-                    ArenaFlow <span className="text-amber-400">AI</span>
+                    {labels.appName.split(' ')[0]} <span className="text-amber-400">{labels.appName.split(' ')[1]}</span>
                   </h1>
-                  <span className="text-[9px] text-slate-400 font-medium tracking-wide">Tournament Operations</span>
+                  <span className="text-[9px] text-slate-400 font-medium tracking-wide">{labels.subHeader}</span>
                 </div>
               )}
             </div>
@@ -553,6 +567,29 @@ export default function App() {
               <ChevronLeft className={`w-4 h-4 transition-transform duration-300 ${sidebarCollapsed ? 'rotate-180' : ''}`} />
             </button>
           </div>
+
+          {/* Operational Domain Switcher */}
+          {!sidebarCollapsed && (
+            <div className="px-4 py-3 border-b border-app-border bg-slate-950/20">
+              <label htmlFor="operational-domain-select" className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest block mb-1.5">
+                🌐 Operational Domain
+              </label>
+              <select
+                id="operational-domain-select"
+                value={domain}
+                onChange={(e) => {
+                  const newDomain = e.target.value as OperationalDomain;
+                  setDomain(newDomain);
+                  showToast('success', `Switched to ${DOMAIN_LABELS[newDomain].appName} operational domain`);
+                }}
+                className="w-full bg-slate-900 border border-slate-850 text-slate-300 text-xs rounded-xl p-2 px-2.5 focus:outline-none focus:ring-1 focus:ring-amber-500 cursor-pointer font-semibold"
+              >
+                <option value="stadium">🏟️ Stadium Operations</option>
+                <option value="campus">🎓 Campus Operations</option>
+                <option value="hospital">🏥 Hospital Operations</option>
+              </select>
+            </div>
+          )}
 
           {/* Nav Items List */}
           <nav className="p-3 space-y-1">
@@ -742,11 +779,11 @@ export default function App() {
             <div className="hidden xl:flex items-center gap-4 text-xs bg-slate-950/60 p-1.5 px-3 rounded-xl border border-slate-850">
               <div className="flex items-center gap-1 text-slate-400">
                 <MapPin className="w-3.5 h-3.5 text-rose-500" />
-                <span>MetLife Stadium, NYNJ</span>
+                <span>{labels.location}</span>
               </div>
               <div className="flex items-center gap-1 text-slate-400 border-l border-slate-850 pl-4">
                 <Tv className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
-                <span>USA vs Mexico <strong className="text-white">2 - 1</strong></span>
+                <span>{labels.event}</span>
               </div>
               <div className="flex items-center gap-1 text-emerald-400 border-l border-slate-850 pl-4 font-mono font-bold">
                 <Wifi className="w-3.5 h-3.5" />
@@ -822,17 +859,17 @@ export default function App() {
           {loadingState.stadium && !state ? (
             <div className="h-full flex flex-col items-center justify-center text-center space-y-4">
               <div className="w-12 h-12 rounded-full border-4 border-amber-500 border-t-transparent animate-spin"></div>
-              <p className="text-sm text-slate-400 font-mono">Synchronizing digital twin with stadium telemetry servers...</p>
+              <p className="text-sm text-slate-400 font-mono">Synchronizing digital twin with telemetry servers...</p>
             </div>
-          ) : state ? (
+          ) : adaptedState ? (
             <div className="space-y-6">
               
               {/* PAGE MODULE 1: Operations Dashboard */}
               {activeTab === 'dashboard' && (
                 <div className="animate-fade-in">
                   <Dashboard
-                    state={state}
-                    risk={riskAssessment}
+                    state={adaptedState}
+                    risk={adaptedRisk}
                     onNavigate={(tab) => setActiveTab(tab)}
                     onSimulateCriticalSurge={handleSimulateCriticalSurge}
                   />
@@ -844,7 +881,7 @@ export default function App() {
                 <div className="space-y-6 animate-fade-in">
                   {/* Visual Stadium Twin Heatmap and Controller */}
                   <StadiumTwin
-                    zones={state.zones}
+                    zones={adaptedState.zones}
                     selectedZoneId={selectedZoneId}
                     onSelectZone={setSelectedZoneId}
                     onUpdateDensity={handleUpdateDensity}
@@ -852,7 +889,7 @@ export default function App() {
 
                   {/* Gemini AI Risk Analyzer */}
                   <RiskAnalysis
-                    assessment={riskAssessment}
+                    assessment={adaptedRisk}
                     loading={loadingState.risk}
                     onRefresh={handleRecalculateRisk}
                   />
@@ -871,14 +908,14 @@ export default function App() {
                   />
 
                   {/* Vendor Operations supply tracker */}
-                  <VendorSync preps={state.vendorPreps} />
+                  <VendorSync preps={adaptedState.vendorPreps} domain={domain} />
                 </div>
               )}
 
               {/* PAGE MODULE 4: Concessions operations */}
               {activeTab === 'vendor' && (
                 <div className="animate-fade-in">
-                  <VendorSync preps={state.vendorPreps} />
+                  <VendorSync preps={adaptedState.vendorPreps} domain={domain} />
                 </div>
               )}
 
@@ -886,9 +923,9 @@ export default function App() {
               {activeTab === 'safety' && (
                 <div className="animate-fade-in">
                   <SafetyAgents
-                    logs={state.agentLogs}
-                    incidents={state.incidents}
-                    zones={state.zones}
+                    logs={adaptedState.agentLogs}
+                    incidents={adaptedState.incidents}
+                    zones={adaptedState.zones}
                     onTriggerIncident={handleTriggerIncident}
                     onReset={handleResetState}
                   />
@@ -898,7 +935,7 @@ export default function App() {
               {/* PAGE MODULE 6: Analytics Comparisons */}
               {activeTab === 'analytics' && (
                 <div className="animate-fade-in">
-                  <Analytics state={state} />
+                  <Analytics state={adaptedState} />
                 </div>
               )}
 
@@ -923,10 +960,10 @@ export default function App() {
 
         {/* ================= GLOBAL COMPACT FOOTER ================= */}
         <footer className="bg-slate-900 border-t border-slate-850 px-6 py-3 text-xs text-slate-500 font-mono flex-shrink-0 flex flex-col sm:flex-row justify-between items-center gap-2">
-          <span>ArenaFlow AI Core Operations • FIFA World Cup 2026</span>
+          <span>{labels.appName} Core Operations • {labels.event}</span>
           <span className="flex items-center gap-1.5 text-[10px]">
             <Globe className="w-3.5 h-3.5 text-amber-500" />
-            Designed for World Cup Venue Operations
+            Designed for Campus & Hospital Queue Intelligence
           </span>
         </footer>
 
