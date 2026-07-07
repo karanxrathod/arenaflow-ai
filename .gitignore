@@ -1,8 +1,70 @@
+# Dependencies
 node_modules/
-build/
+/jspm_packages/
+/.pnp
+.pnp.js
+
+# Production / Builds
 dist/
-coverage/
-.DS_Store
+build/
+.next/
+out/
+.docusaurus/
+.vuepress/dist
+temp/
+
+# Debugging logs & diagnostics
 *.log
-.env*
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# IDEs and editors configuration
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.project
+.classpath
+.settings/
+
+# Operating System files
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Testing, reports, and coverage
+coverage/
+htmlcov/
+.nyc_output
+.jest/
+.test/
+*.lcov
+spec/reports/
+junit.xml
+
+# Environment variables & secrets (CRITICAL)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 !.env.example
+
+# Frontend build tools cache & temporary
+.eslintcache
+.stylelintcache
+.vite/
+.parcel-cache/
+.turbo/
+.vercel
