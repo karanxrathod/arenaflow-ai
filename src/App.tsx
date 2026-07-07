@@ -91,6 +91,13 @@ export default function App() {
     }
   });
 
+  // Log environment variables on mount to assist Vercel debugging
+  useEffect(() => {
+    console.log('--- Vercel Environment Variables Audit ---');
+    console.log((import.meta as any).env);
+    console.log('-----------------------------------------');
+  }, []);
+
   // Fetch live stadium digital twin state
   const fetchStadiumState = useCallback(async (showLoader = false) => {
     if (showLoader) setLoadingState(prev => ({ ...prev, stadium: true }));
